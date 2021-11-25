@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 import json
 import re
-import os
-import sys
+from os import environ
+from sys import stderr
 import warnings
-
-if len(sys.argv) <= 1:
-  print(f"{sys.argv[0]}: no files", file=sys.stderr)
-  print(f"use: {sys.argv[0]} <files>", file=sys.stderr)
-  sys.exit(1)
 
 # find any {num} {str} <num> </num> <num/> %(str)s
 REGEX = r'(\{(\w+|\d+)\})|(<\/?\d+\/?>)|(%(\(\w+\))?.)'
@@ -17,50 +12,50 @@ REGEX = r'(\{(\w+|\d+)\})|(<\/?\d+\/?>)|(%(\(\w+\))?.)'
 def unqqbackslash(s):
   return json.loads(s)
 
+
+# extract all vars from string - findall(REGEX).map((arr) => arr.compact.first)
+def extract(s):
+  return [ [truthy for truthy in match if truthy][0] for match in re.findall(REGEX, s) ]
+
+
+def fail(msg):
+  if environ.get('GITHUB_ACTIONS'):
+    s = msg.replace("\r", "").replace("\n", "").replace('%', '%25')
+    print(f"::error file={file},line={line}::{s}", file=stderr)
+  return f"  {msg}\n"
+
+
 def process_pair(msgid, msgstr, file, line):
   # handling eof while still in state 2; magic id, untranslated strings
-  if msgid == None or msgstr == None or len(msgid) == 0 or len(msgstr) == 0:
+  if not msgid or not msgstr:
     return True
 
-  # findall(...).map((arr) => arr.compact.first)
-  msgidvars = [ [truthy for truthy in match if truthy][0] for match in re.findall(REGEX, msgid) ]
-  msgstrvars = [ [truthy for truthy in match if truthy][0] for match in re.findall(REGEX, msgstr) ]
+  msgidvars = extract(msgid)
+  msgstrvars = extract(msgstr)
 
-  missing = list( set(msgidvars) - set(msgstrvars) )
-  extra = list( set(msgstrvars) - set(msgidvars) )
+  missing = set(msgidvars) - set(msgstrvars)
+  extra = set(msgstrvars) - set(msgidvars)
 
   if len(missing) or len(extra):
     message = ""
     if len(missing):
-      msg = f"Missing from msgstr: {' '.join(missing)}"
-      if os.environ.get('GITHUB_ACTIONS'):
-        s = msg.replace("\r", "").replace("\n", "").replace('%', '%25')
-        print(f"::error file={file},line={line}::{s}", file=sys.stderr)
-      message += f"  {msg}\n"
+      message += fail(f"Missing from msgstr: {', '.join(missing)}")
     if len(extra):
-      msg = f"Unexpected in msgstr: {' '.join(extra)}"
-      if os.environ.get('GITHUB_ACTIONS'):
-        s = msg.replace("\r", "").replace("\n", "").replace('%', '%25')
-        print(f"::error file={file},line={line}::{s}", file=sys.stderr)
-      message += f"  {msg}\n"
+      message += fail(f"Unexpected in msgstr: {', '.join(extra)}")
     message += f"  at {file}:{line}"
 
-    print(f"Difference between msgid=\"{msgid}\" and msgstr=\"{msgstr}\":\n{message}\n", file=sys.stderr)
+    print(f"Difference between msgid=\"{msgid}\" and msgstr=\"{msgstr}\":\n{message}\n", file=stderr)
     return False
 
   return True
 
-errors = False
 
-for filename in sys.argv[1:]:
+def process_file(filename, lines):
+  errors = False
   state = 0
   msgid = None
   msgstr = None
   msgstrlineno = 0
-  lines = None
-
-  with open(filename) as f:
-    lines = f.read().splitlines()
 
   for lineno, line in enumerate(lines):
     if re.match(r'^#', line):
@@ -115,4 +110,18 @@ for filename in sys.argv[1:]:
   if not process_pair(msgid, msgstr, filename, msgstrlineno):
     errors = True
 
-sys.exit(1 if errors else 0)
+  return errors
+
+
+def main(files):
+  errors = False
+
+  for filename in files:
+    lines = None
+    with open(filename) as f:
+      lines = f.read().splitlines()
+
+    if process_file(filename, lines):
+      errors = True
+
+  return(1 if errors else 0)
