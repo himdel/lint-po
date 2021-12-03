@@ -7,7 +7,7 @@ A simple gettext .po linter to check for mangled variable names in translations.
 
 * reads utf-8 encoded *.po files
 * skips `msgid/msgstr` pairs where either value is unset
-* compares original/translation pairs for common interpolation markars:
+* compares original/translation pairs for common interpolation markers:
   * supports `{name}`, `{123}`, `<123>`, `</123>`, `<123/>`, `%(name)s`
   * ensures both messages use the same set of variables - no renames, no removals, no additions
 * supports Github Actions error reporting syntax (when `env.GITHUB_ACTIONS` is set)
