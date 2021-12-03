@@ -1,0 +1,25 @@
+name: "Build and deploy"
+
+on:
+  workflow_dispatch: # allow running manually
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - run: |
+        python -m pip install --user build
+        python -m build
+
+    - uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: "__token__"
+        password: "${{ secrets.PYPI }}"
