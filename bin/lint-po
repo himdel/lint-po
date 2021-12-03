@@ -3,12 +3,13 @@ import sys
 import os
 from lint_po import main
 
-programname = os.path.basename(sys.argv[0])
-files=sys.argv[1:]
+if __name__ == '__main__':
+  programname = os.path.basename(sys.argv[0])
+  files=sys.argv[1:]
 
-if len(files) < 1:
-  print(f"{programname}: no files", file=sys.stderr)
-  print(f"use: {programname} <files>", file=sys.stderr)
-  sys.exit(1)
+  if len(files) < 1:
+    print(f"{programname}: no files", file=sys.stderr)
+    print(f"use: {programname} <files>", file=sys.stderr)
+    sys.exit(1)
 
-sys.exit( main(files) )
+  sys.exit( main(files) )
