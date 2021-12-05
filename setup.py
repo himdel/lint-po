@@ -9,9 +9,9 @@ setup(
   description='A simple gettext .po linter to check for mangled variable names in translations',
   long_description=long_description,
   long_description_content_type='text/markdown',
-  version="0.1.1",
+  version="0.1.2",
   license='Apache License 2.0',
-  py_modules=["lint_po"],
+  packages=["lint_po"],
   scripts=["bin/lint-po"],
   url='https://github.com/himdel/lint-po',
 )
