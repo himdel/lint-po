@@ -9,7 +9,7 @@ setup(
   description='A simple gettext .po linter to check for mangled variable names in translations',
   long_description=long_description,
   long_description_content_type='text/markdown',
-  version="0.1.2",
+  version="0.1.3",
   license='Apache License 2.0',
   packages=["lint_po"],
   scripts=["bin/lint-po"],

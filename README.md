@@ -23,3 +23,10 @@ Difference between msgid="Hello {name}" and msgstr="Bonjour {nom}":
   Unexpected in msgstr: {nom}
   at problem.po:2
 ```
+
+
+#### TODO
+
+* catch nesting errors (<0><1></0></1>), reordering is fine but nesting still needs to make sense
+* ensure positional counts (3x %s vs 4x %s, etc.)
+* build: autoincrement version for releases
