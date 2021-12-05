@@ -18,7 +18,7 @@ def extract(s):
   return [ [truthy for truthy in match if truthy][0] for match in re.findall(REGEX, s) ]
 
 
-def fail(msg):
+def fail(msg, file, line):
   if environ.get('GITHUB_ACTIONS'):
     s = msg.replace("\r", "").replace("\n", "").replace('%', '%25')
     print(f"::error file={file},line={line}::{s}", file=stderr)
@@ -39,9 +39,9 @@ def process_pair(msgid, msgstr, file, line):
   if len(missing) or len(extra):
     message = ""
     if len(missing):
-      message += fail(f"Missing from msgstr: {', '.join(missing)}")
+      message += fail(f"Missing from msgstr: {', '.join(missing)}", file, line)
     if len(extra):
-      message += fail(f"Unexpected in msgstr: {', '.join(extra)}")
+      message += fail(f"Unexpected in msgstr: {', '.join(extra)}", file, line)
     message += f"  at {file}:{line}"
 
     print(f"Difference between msgid=\"{msgid}\" and msgstr=\"{msgstr}\":\n{message}\n", file=stderr)
