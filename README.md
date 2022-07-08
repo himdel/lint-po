@@ -30,3 +30,5 @@ Difference between msgid="Hello {name}" and msgstr="Bonjour {nom}":
 * catch nesting errors (<0><1></0></1>), reordering is fine but nesting still needs to make sense
 * ensure positional counts (3x %s vs 4x %s, etc.)
 * build: autoincrement version for releases
+* check headers, Language: <code> should match the filename
+* `msgstr "{count, plural, one {依存関係} other {依存関係}}"` is the one case when the thing in {} needs to change between msgid and msgstr
