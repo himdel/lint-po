@@ -8,6 +8,8 @@ import warnings
 # find any {num} {str} <num> </num> <num/> %(str)s
 REGEX = r'(\{(\w+|\d+)\})|(<\/?\d+\/?>)|(%(\(\w+\))?.)'
 
+PLURAL_REGEX = r'^{(\w+), plural, .*}$'
+
 # s.encode('utf-8').decode('unicode-escape') if only it worked with utf8 strings
 def unqqbackslash(s):
   return json.loads(s)
@@ -30,6 +32,23 @@ def process_pair(msgid, msgstr, file, line):
   if not msgid or not msgstr:
     return True
 
+  # lingui-style plurals - "{n, plural, one {# Word} other {# Words}}"
+  lingui_id = re.match(PLURAL_REGEX, msgid)
+  lingui_str = re.match(PLURAL_REGEX, msgstr)
+  if lingui_id or lingui_str:
+    message = ""
+    if not lingui_id or not lingui_str:
+      message += fail(f"Plural only in msgid or only in msgstr, not the other", file, line)
+    elif lingui_id[1] != lingui_str[1]:
+      message += fail(f"Plural var different between msgid ({lingui_id[1]}) and msgstr ({lingui_str[1]})", file, line)
+
+    if message:
+      print(f"Plural issue between msgid=\"{msgid}\" and msgstr=\"{msgstr}\":\n{message}\n", file=stderr)
+      return False
+
+    return True
+
+  # regular message with placeholders
   msgidvars = extract(msgid)
   msgstrvars = extract(msgstr)
 
