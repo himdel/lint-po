@@ -11,6 +11,7 @@ A simple gettext .po linter to check for mangled variable names in translations.
   * supports `{name}`, `{123}`, `<123>`, `</123>`, `<123/>`, `%(name)s`
   * ensures both messages use the same set of variables - no renames, no removals, no additions
 * supports Github Actions error reporting syntax (when `env.GITHUB_ACTIONS` is set)
+* supports lingui plural syntax - `msgstr "{count, plural, one {依存関係} other {依存関係}}"` is the one case when the thing in {} needs to change between msgid and msgstr
 
 
 #### Example usage
@@ -31,4 +32,3 @@ Difference between msgid="Hello {name}" and msgstr="Bonjour {nom}":
 * ensure positional counts (3x %s vs 4x %s, etc.)
 * build: autoincrement version for releases
 * check headers, Language: <code> should match the filename
-* `msgstr "{count, plural, one {依存関係} other {依存関係}}"` is the one case when the thing in {} needs to change between msgid and msgstr
