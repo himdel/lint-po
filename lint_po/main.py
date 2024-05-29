@@ -6,7 +6,7 @@ from sys import stderr
 import warnings
 
 # find any {num} {str} <num> </num> <num/> %(str)s
-REGEX = r'(\{(\w+|\d+)\})|(<\/?\d+\/?>)|(%(\(\w+\))?.)'
+REGEX = r'(\{(\w+|\d+)\})|(<\/?\d+\/?>)|(%(\(\w+\))?\w)'
 
 PLURAL_REGEX = r'^{(\w+), plural, .*}$'
 
