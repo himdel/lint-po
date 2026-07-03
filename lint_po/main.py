@@ -38,7 +38,7 @@ def process_pair(msgid, msgstr, file, line):
   if lingui_id or lingui_str:
     message = ""
     if not lingui_id or not lingui_str:
-      message += fail(f"Plural only in msgid or only in msgstr, not the other", file, line)
+      message += fail("Plural only in msgid or only in msgstr, not the other", file, line)
     elif lingui_id[1] != lingui_str[1]:
       message += fail(f"Plural var different between msgid ({lingui_id[1]}) and msgstr ({lingui_str[1]})", file, line)
 
@@ -107,9 +107,10 @@ def process_file(filename, lines):
   msgstrs = {}
   msgstrs_idx = None
   msgstrlineno = 0
+  fuzzy = False
 
   def reset():
-    nonlocal state, msgid, msgid_plural, msgstr, msgstrs, msgstrs_idx, msgstrlineno
+    nonlocal state, msgid, msgid_plural, msgstr, msgstrs, msgstrs_idx, msgstrlineno, fuzzy
     state = 0
     msgid = None
     msgid_plural = None
@@ -117,9 +118,13 @@ def process_file(filename, lines):
     msgstrs = {}
     msgstrs_idx = None
     msgstrlineno = 0
+    fuzzy = False
 
   for lineno, line in enumerate(lines):
     if re.match(r'^#', line):
+      if state == 0 and (m := re.match(r'^#((,\s[^\s,]+)+)$', line)): # got comments while expecting `msgid`
+        keywords = [kw.strip() for kw in m[1].split(',') if kw.strip()]
+        fuzzy = 'fuzzy' in keywords
       continue
 
     line = line.strip()
@@ -157,7 +162,7 @@ def process_file(filename, lines):
 
     elif state == 2: # expecting newline, or more bits of previous msgstr
       if re.match(r'^$', line):
-        if not process_pair(msgid, msgstr, filename, msgstrlineno):
+        if not fuzzy and not process_pair(msgid, msgstr, filename, msgstrlineno):
           errors = True
 
         reset()
@@ -207,10 +212,10 @@ def process_file(filename, lines):
 
   # handle EOF: flush whatever entry is pending
   if state == 2:
-    if not process_pair(msgid, msgstr, filename, msgstrlineno):
+    if not fuzzy and not process_pair(msgid, msgstr, filename, msgstrlineno):
       errors = True
   elif state == 4:
-    if not process_plural(msgid, msgid_plural, msgstrs, filename, msgstrlineno):
+    if not fuzzy and not process_plural(msgid, msgid_plural, msgstrs, filename, msgstrlineno):
       errors = True
 
   return errors
